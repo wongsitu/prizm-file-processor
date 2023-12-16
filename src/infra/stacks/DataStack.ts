@@ -22,7 +22,7 @@ export class PrizmDataStack extends Stack {
       }]
     });
     new CfnOutput(this, 'PrizmFilesBucketName', {
-        value: this.prizmFiles.bucketName
+      value: this.prizmFiles.bucketName
     });
   }
 }
