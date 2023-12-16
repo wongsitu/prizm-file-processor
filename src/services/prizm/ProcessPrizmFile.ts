@@ -1,9 +1,8 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { getPRIZMCode } from "./shared/Utils";
 import csvtojson from 'csvtojson';
-
-// let cache: {[key:string]: string} = {};
+import { json2csv } from 'json-2-csv';
 
 export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
   if (!event.queryStringParameters?.path) {
@@ -43,6 +42,16 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
     .then((responses) => {
       return responses
     })
+
+  const csvContent = json2csv(response)
+
+  const putCommand = new PutObjectCommand({
+    Bucket: process.env.BUCKET_NAME,
+    Key: event.queryStringParameters.path,
+    Body: csvContent,
+  })
+
+  await s3Client.send(putCommand)
 
   return {
     statusCode: 200,
