@@ -1,4 +1,4 @@
-import { Stack, StackProps } from 'aws-cdk-lib'
+import { Duration, Stack, StackProps } from 'aws-cdk-lib'
 import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway'
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
@@ -13,6 +13,7 @@ interface PrizmLambdaStackProps extends StackProps {
 
 export class PrizmLambdaStack extends Stack {
   public readonly prizmLambdaIntegration: LambdaIntegration
+  
 
   constructor(scope: Construct, id: string, props: PrizmLambdaStackProps) {
     super(scope, id, props)
@@ -24,14 +25,15 @@ export class PrizmLambdaStack extends Stack {
       environment: {
         BUCKET_NAME: props.prizmBucket.bucketName,
       },
+      timeout: Duration.seconds(20),
     })
 
     prizmLambda.addToRolePolicy(new PolicyStatement({
       effect: Effect.ALLOW,
       actions: [
-        "s3:*Object"
+        "s3:*"
       ],
-      resources: ['*'],
+      resources: [props.prizmBucket.bucketArn, `${props.prizmBucket.bucketArn}/*`],
     }))
 
     this.prizmLambdaIntegration = new LambdaIntegration(prizmLambda)

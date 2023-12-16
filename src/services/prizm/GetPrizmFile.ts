@@ -15,7 +15,7 @@ type RowType = {
 }
 
 export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
-  if (!event.queryStringParameters?.path) {
+  if (!event.pathParameters) {
     const command = new ListObjectsCommand({
       Bucket: process.env.BUCKET_NAME,
     })
@@ -28,10 +28,17 @@ export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Clie
     }
   }
 
+  if (!event.pathParameters) {
+    return {
+      statusCode: 400,
+      body: 'Missing path parameter'
+    }
+  }
+
   const command = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
-    Key: event.queryStringParameters?.path,
-    Range: event.queryStringParameters.isPreview ? 'bytes=0-512' : undefined,
+    Key: event.pathParameters.path,
+    Range: event.queryStringParameters?.isPreview ? 'bytes=0-512' : undefined,
   })
 
   const result = await s3Client.send(command)
@@ -50,7 +57,11 @@ export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Clie
   const onData = new Promise<RowType[]>((resolve) => {
     const response: RowType[] = [];
     parser.on('data', (row: RowType) => {
-      response.push(row);
+      if (response.length < 6 && event.queryStringParameters?.isPreview) {
+        response.push(row);
+      } else {
+        response.push(row);
+      }
     });
 
     parser.on('end', () => {

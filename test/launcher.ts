@@ -1,13 +1,15 @@
 import { handler } from "../src/services/prizm/handler";
 require('dotenv').config()
 
-// handler({ 
-//   httpMethod: 'GET',
-//   queryStringParameters: {
-//     path: process.env.KEY,
-//     isPreview: true
-//   },
-// } as any, {} as any)
+handler({ 
+  httpMethod: 'GET',
+  queryStringParameters: {
+    isPreview: true
+  },
+  pathParameters: {
+    path: process.env.KEY,
+  }
+} as any, {} as any)
 
 handler({ 
   httpMethod: 'GET',
