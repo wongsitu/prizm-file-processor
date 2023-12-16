@@ -51,7 +51,7 @@ export const GetSegmentSchema = z.discriminatedUnion('format', [MultiSchema, Uni
   if (data.format === 'invalid_pcode') {
     return -1
   }
-  return generateRandomNumber(1, 67)
+  return undefined
 });
 
 export const ProcessSchema = z.object({

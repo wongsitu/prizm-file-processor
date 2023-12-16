@@ -17,7 +17,7 @@ require('dotenv').config()
 
 handler({ 
   httpMethod: 'POST',
-  queryStringParameters: {
-    path: 'example/prizm.csv',
-  },
+  body: JSON.stringify({
+    path: 'prizm.csv',
+  }),
 } as any, {} as any)

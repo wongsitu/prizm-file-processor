@@ -38,8 +38,11 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
   const str = await s3Result.Body.transformToString();
   const csvFileResponse = await csvtojson().fromString(str)
 
+  // let cache: Record<string, number> = {}
+
   const promiseArray = csvFileResponse.map(async (element) => {
-      const prizmId = await getPRIZMCode(element['Postal Code'])
+      const pCode = element['Postal Code']
+      const prizmId = await getPRIZMCode(pCode)
 
       return {
         ...element,
