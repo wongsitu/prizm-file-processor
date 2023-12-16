@@ -18,6 +18,6 @@ require('dotenv').config()
 handler({ 
   httpMethod: 'POST',
   queryStringParameters: {
-    path: process.env.KEY,
+    path: 'example/prizm.csv',
   },
 } as any, {} as any)
