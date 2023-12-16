@@ -1,4 +1,4 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, ListObjectsCommand, S3Client } from "@aws-sdk/client-s3";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import csvParser from "csv-parser";
 import { Readable } from "stream";
@@ -16,9 +16,15 @@ type RowType = {
 
 export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
   if (!event.queryStringParameters?.path) {
+    const command = new ListObjectsCommand({
+      Bucket: process.env.BUCKET_NAME,
+    })
+
+    const result = await s3Client.send(command)
+
     return {
-      statusCode: 422,
-      body: 'Missing path'
+      statusCode: 200,
+      body: JSON.stringify(result.Contents || [])
     }
   }
 
@@ -29,6 +35,13 @@ export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Clie
   })
 
   const result = await s3Client.send(command)
+
+  if (!result.Body) {
+    return {
+      statusCode: 404,
+      body: 'File not found'
+    }
+  }
 
   const Body = result.Body as Readable
 

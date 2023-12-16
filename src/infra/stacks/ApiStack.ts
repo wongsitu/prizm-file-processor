@@ -19,7 +19,7 @@ export class ApiStack extends Stack {
       },
     }
 
-    const prizmResource = api.root.addResource('prizm', optionsWithCORS)
+    const prizmResource = api.root.addResource('files', optionsWithCORS)
     prizmResource.addMethod('GET', props.prizmLambdaIntegration)
     prizmResource.addMethod('POST', props.prizmLambdaIntegration)
   }
