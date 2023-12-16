@@ -32,6 +32,11 @@ export const getPRIZMCode = async (postalCode: string) => {
     })
 };
 
+export const generateRandomNumber = (min: number, max: number) => {
+  const randomFraction = Math.random();
+  return Math.floor(randomFraction * (max - min + 1)) + min;
+}
+
 export type RowType = {
   StoreID: string;
   Customer_ID: string;

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { generateRandomNumber } from './Utils'
 
 export class JSONError extends Error {}
 
@@ -50,5 +51,5 @@ export const GetSegmentSchema = z.discriminatedUnion('format', [MultiSchema, Uni
   if (data.format === 'invalid_pcode') {
     return -1
   }
-  return null
+  return generateRandomNumber(1, 67)
 });
