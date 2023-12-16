@@ -46,12 +46,12 @@ export const GetSegmentSchema = z.discriminatedUnion('format', [MultiSchema, Uni
     return data.data
   }
   if (data.format === 'non_residential_zoning') {
-    return null
+    return undefined
   }
   if (data.format === 'invalid_pcode') {
     return -1
   }
-  return undefined
+  return generateRandomNumber(1, 67)
 });
 
 export const ProcessSchema = z.object({
