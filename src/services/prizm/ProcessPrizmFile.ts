@@ -17,7 +17,6 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
   const command = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
     Key: event.pathParameters.path,
-    // Range: 'bytes=0-2048',
   })
 
   const s3Result = await s3Client.send(command)

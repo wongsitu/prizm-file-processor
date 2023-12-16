@@ -23,10 +23,12 @@ export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Clie
     }
   }
 
+  const isPreview = event.queryStringParameters?.isPreview === 'true'
+
   const command = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
     Key: event.pathParameters.path,
-    Range: event.queryStringParameters?.isPreview ? 'bytes=0-512' : undefined,
+    Range: isPreview ? 'bytes=0-512' : undefined,
   })
 
   const result = await s3Client.send(command)
@@ -40,9 +42,10 @@ export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Clie
 
   const str = await result.Body.transformToString();
   const parsedJSON = await csvtojson().fromString(str)
+  const response = isPreview ? parsedJSON.slice(0, 6) : parsedJSON
 
   return {
     statusCode: 200,
-    body: JSON.stringify(parsedJSON)
+    body: JSON.stringify(response)
   }
 }
