@@ -3,7 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import csvtojson from 'csvtojson';
 
 export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
-  if (!event.pathParameters) {
+  if (!event.queryStringParameters?.path) {
     const command = new ListObjectsCommand({
       Bucket: process.env.BUCKET_NAME,
     })
@@ -16,18 +16,11 @@ export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Clie
     }
   }
 
-  if (!event.pathParameters) {
-    return {
-      statusCode: 400,
-      body: 'Missing path parameter'
-    }
-  }
-
   const isPreview = event.queryStringParameters?.isPreview === 'true'
 
   const command = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
-    Key: event.pathParameters.path,
+    Key: event.queryStringParameters?.path,
     Range: isPreview ? 'bytes=0-512' : undefined,
   })
 
