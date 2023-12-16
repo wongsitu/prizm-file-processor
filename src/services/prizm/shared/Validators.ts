@@ -1,18 +1,4 @@
-import { randomUUID } from 'crypto'
 import { z } from 'zod'
-
-export const PostSchema = z.object({
-  name: z.string(),
-  location: z.string(),
-  photoUrl: z.string().optional(),
-})
-
-export const CreatePostSchema = PostSchema.transform((data) => ({
-  ...data,
-  id: randomUUID(),
-}))
-
-export const UpdatePostSchema = PostSchema.partial()
 
 export class JSONError extends Error {}
 
@@ -41,5 +27,28 @@ export const NonResidentialSchema = z.object({
   format: z.literal('non_residential_zoning'),
 })
 
+export const InvalidPCodeSchema = z.object({
+  result: z.literal('error'),
+  data: z.string(),
+  format: z.literal('invalid_pcode'),
+})
 
-export const fieldSchema = z.discriminatedUnion('format', [MultiSchema, UniqueSchema, NonResidentialSchema]);
+export const PostalCodeValidator = z.string().refine((value) => /^[A-Za-z]\d[A-Za-z]\d[A-Za-z]\d$/.test(value), {
+  message: 'Invalid format. It should be <letter><number><letter><number><letter><number>',
+});
+
+export const GetSegmentSchema = z.discriminatedUnion('format', [MultiSchema, UniqueSchema, NonResidentialSchema, InvalidPCodeSchema]).transform((data) => {
+  if (data.format === 'multi') {
+    return data.data[0].prizm_id
+  }
+  if (data.format === 'unique') {
+    return data.data
+  }
+  if (data.format === 'non_residential_zoning') {
+    return null
+  }
+  if (data.format === 'invalid_pcode') {
+    return -1
+  }
+  return null
+});

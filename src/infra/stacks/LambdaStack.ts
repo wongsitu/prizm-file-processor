@@ -24,8 +24,9 @@ export class PrizmLambdaStack extends Stack {
       entry: join(__dirname, '..', '..', 'services', 'prizm', 'handler.ts'),
       environment: {
         BUCKET_NAME: props.prizmBucket.bucketName,
+        PRIZM_URL: process.env.PRIZM_URL!,
       },
-      timeout: Duration.seconds(20),
+      timeout: Duration.seconds(30),
     })
 
     prizmLambda.addToRolePolicy(new PolicyStatement({

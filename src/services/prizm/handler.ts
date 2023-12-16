@@ -2,6 +2,8 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { addCORSHeaders } from "./shared/Utils";
 import { S3Client } from "@aws-sdk/client-s3";
 import { getPrizmFile } from "./GetPrizmFile";
+import { processPrizmFile } from "./ProcessPrizmFile";
+
 
 const s3Client = new S3Client({})
 
@@ -12,6 +14,9 @@ async function handler(event: APIGatewayProxyEvent, context: Context): Promise<A
     switch (event.httpMethod) {
       case 'GET':
         response = await getPrizmFile(event, s3Client);
+        break
+      case 'POST':
+        response = await processPrizmFile(event, s3Client);
         break
       default:
         response = {

@@ -2,17 +2,9 @@ import { GetObjectCommand, ListObjectsCommand, S3Client } from "@aws-sdk/client-
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import csvParser from "csv-parser";
 import { Readable } from "stream";
+import { RowType } from "./shared/Utils";
 
 const parser = csvParser();
-
-type RowType = {
-  StoreID: string;
-  Customer_ID: string;
-  'Postal Code': string;
-  Total_Visits: `${number}`,
-  'Dollars Spend': `${number}`,
-  'Product Type': string;
-}
 
 export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
   if (!event.pathParameters) {
