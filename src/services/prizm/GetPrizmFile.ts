@@ -1,10 +1,6 @@
 import { GetObjectCommand, ListObjectsCommand, S3Client } from "@aws-sdk/client-s3";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import csvParser from "csv-parser";
-import { Readable } from "stream";
-import { RowType } from "./shared/Utils";
-
-const parser = csvParser();
+import csvtojson from 'csvtojson';
 
 export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
   if (!event.pathParameters) {
@@ -42,29 +38,11 @@ export const getPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Clie
     }
   }
 
-  const Body = result.Body as Readable
-
-  Body.pipe(parser)
-
-  const onData = new Promise<RowType[]>((resolve) => {
-    const response: RowType[] = [];
-    parser.on('data', (row: RowType) => {
-      if (response.length < 6 && event.queryStringParameters?.isPreview) {
-        response.push(row);
-      } else {
-        response.push(row);
-      }
-    });
-
-    parser.on('end', () => {
-      resolve(response);
-    });
-  });
-
-  const response = await onData;
+  const str = await result.Body.transformToString();
+  const parsedJSON = await csvtojson().fromString(str)
 
   return {
     statusCode: 200,
-    body: JSON.stringify(response)
+    body: JSON.stringify(parsedJSON)
   }
 }

@@ -1,10 +1,8 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Readable } from "stream";
-import csvParser from "csv-parser";
-import { RowType, getPRIZMCode } from "./shared/Utils";
-
-const parser = csvParser();
+import { getPRIZMCode } from "./shared/Utils";
+import csvtojson from 'csvtojson';
 
 // let cache: {[key:string]: string} = {};
 
@@ -31,22 +29,8 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
     }
   }
 
-  const Body = s3Result.Body as Readable
-
-  Body.pipe(parser)
-
-  const onData = new Promise<RowType[]>((resolve) => {
-    const response: RowType[] = [];
-    parser.on('data', (row: RowType) => {
-      response.push(row)
-    });
-
-    parser.on('end', () => {
-      resolve(response);
-    });
-  });
-
-  let csvFileResponse = await onData;
+  const str = await s3Result.Body.transformToString();
+  const csvFileResponse = await csvtojson().fromString(str)
 
   const promiseArray = csvFileResponse.map(async (element) => {
       const prizmId = await getPRIZMCode(element['Postal Code'])
