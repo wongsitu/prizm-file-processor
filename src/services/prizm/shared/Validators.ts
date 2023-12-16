@@ -53,3 +53,7 @@ export const GetSegmentSchema = z.discriminatedUnion('format', [MultiSchema, Uni
   }
   return generateRandomNumber(1, 67)
 });
+
+export const ProcessSchema = z.object({
+  path: z.string()
+})

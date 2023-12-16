@@ -3,9 +3,18 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { getPRIZMCode } from "./shared/Utils";
 import csvtojson from 'csvtojson';
 import { json2csv } from 'json-2-csv';
+import { ProcessSchema } from "./shared/Validators";
 
 export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
-  if (!event.queryStringParameters?.path) {
+  if (!event.body) {
+    return {
+      statusCode: 422,
+      body: 'Unprocessable Entity'
+    }
+  }
+  const item = ProcessSchema.safeParse(JSON.parse(event.body))
+
+  if (!item.success) {
     return {
       statusCode: 400,
       body: 'Missing path parameter'
@@ -14,7 +23,7 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
 
   const command = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
-    Key: event.queryStringParameters.path,
+    Key: item.data.path,
   })
 
   const s3Result = await s3Client.send(command)
@@ -47,7 +56,7 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
 
   const putCommand = new PutObjectCommand({
     Bucket: process.env.BUCKET_NAME,
-    Key: event.queryStringParameters.path,
+    Key: item.data.path,
     Body: csvContent,
   })
 
