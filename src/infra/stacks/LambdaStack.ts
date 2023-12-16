@@ -27,6 +27,7 @@ export class PrizmLambdaStack extends Stack {
         PRIZM_URL: process.env.PRIZM_URL!,
       },
       timeout: Duration.seconds(30),
+      memorySize: 256,
     })
 
     prizmLambda.addToRolePolicy(new PolicyStatement({

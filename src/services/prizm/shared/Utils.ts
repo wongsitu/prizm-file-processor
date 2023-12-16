@@ -23,7 +23,7 @@ export const PRIZM_API = axios.create({
 });
 
 export const getPRIZMCode = async (postalCode: string) => {
-  return PRIZM_API.get('https://prizm.environicsanalytics.com/api/pcode/get_segment', { params: { postal_code: postalCode }})
+  return PRIZM_API.get('https://prizm.environicsanalytics.com/api/pcode/get_segment', { params: { postal_code: postalCode } })
     .then((response) => {
       const data = GetSegmentSchema.safeParse(response.data)
 
@@ -31,9 +31,6 @@ export const getPRIZMCode = async (postalCode: string) => {
         return generateRandomNumber(1, 67)
       }
       return data.data
-    })
-    .catch((error) => {
-      console.log(error)
     })
 };
 

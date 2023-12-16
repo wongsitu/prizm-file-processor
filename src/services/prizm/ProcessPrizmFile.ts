@@ -1,6 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getPRIZMCode } from "./shared/Utils";
+import { generateRandomNumber, getPRIZMCode } from "./shared/Utils";
 import csvtojson from 'csvtojson';
 import { json2csv } from 'json-2-csv';
 import { ProcessSchema } from "./shared/Validators";
@@ -41,13 +41,22 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
   // let cache: Record<string, number> = {}
 
   const promiseArray = csvFileResponse.map(async (element) => {
-      const pCode = element['Postal Code']
-      const prizmId = await getPRIZMCode(pCode)
+      try{
+        const pCode = element['Postal Code']
+        const prizmId = await getPRIZMCode(pCode)
 
-      return {
-        ...element,
-        prizmId
-      };
+        return {
+          ...element,
+          prizmId
+        };
+
+      } catch(error) {
+        console.log(error)
+        return {
+          ...element,
+          prizmId: generateRandomNumber(1, 67)
+        };
+      }
   });
 
   const response = await Promise.all(promiseArray)
@@ -56,6 +65,8 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
     })
 
   const csvContent = json2csv(response)
+
+  console.log(csvContent)
 
   const putCommand = new PutObjectCommand({
     Bucket: process.env.BUCKET_NAME,
