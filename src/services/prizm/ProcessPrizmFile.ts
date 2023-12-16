@@ -4,6 +4,7 @@ import { generateRandomNumber, getPRIZMCode } from "./shared/Utils";
 import csvtojson from 'csvtojson';
 import { json2csv } from 'json-2-csv';
 import { ProcessSchema } from "./shared/Validators";
+import _ from 'lodash';
 
 export const cache = new Map();
 
@@ -40,42 +41,31 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
   const str = await s3Result.Body.transformToString();
   const csvFileResponse = await csvtojson().fromString(str)
 
-  const promiseArray = csvFileResponse.map(async (element) => {
-      try{
-        const pCode = element['Postal Code'] as string
+  const attachPrizmCode = _.memoize(async (element) => {
+    try{
+      const pCode = element['Postal Code'] as string
+      const prizmId = await getPRIZMCode(pCode)
 
-        if (cache.has(pCode)) {
-          return {
-              ...element,
-              prizmId: cache.get(pCode)
-          };
-        }
-        
-        const prizmId = await getPRIZMCode(pCode)
+      return {
+        ...element,
+        prizmId
+      };
 
-        cache.set(pCode, prizmId)
-
-        return {
-          ...element,
-          prizmId
-        };
-
-      } catch(error) {
-        return {
-          ...element,
-          prizmId: generateRandomNumber(1, 67)
-        };
-      }
+    } catch(error) {
+      return {
+        ...element,
+        prizmId: generateRandomNumber(1, 67)
+      };
+    }
   });
 
+  const promiseArray = csvFileResponse.map(attachPrizmCode);
   const response = await Promise.all(promiseArray)
     .then((responses) => {
       return responses
     })
 
   const csvContent = json2csv(response)
-
-  console.log(csvContent)
 
   const putCommand = new PutObjectCommand({
     Bucket: process.env.BUCKET_NAME,
