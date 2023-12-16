@@ -30,6 +30,7 @@ export const getPRIZMCode = async (postalCode: string) => {
       if (!data.success) {
         return generateRandomNumber(1, 67)
       }
+
       return data.data
     })
 };

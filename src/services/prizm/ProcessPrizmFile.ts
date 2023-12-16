@@ -5,6 +5,8 @@ import csvtojson from 'csvtojson';
 import { json2csv } from 'json-2-csv';
 import { ProcessSchema } from "./shared/Validators";
 
+export const cache = new Map();
+
 export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3Client): Promise<APIGatewayProxyResult> => {
   if (!event.body) {
     return {
@@ -38,12 +40,20 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
   const str = await s3Result.Body.transformToString();
   const csvFileResponse = await csvtojson().fromString(str)
 
-  // let cache: Record<string, number> = {}
-
   const promiseArray = csvFileResponse.map(async (element) => {
       try{
-        const pCode = element['Postal Code']
+        const pCode = element['Postal Code'] as string
+
+        if (cache.has(pCode)) {
+          return {
+              ...element,
+              prizmId: cache.get(pCode)
+          };
+        }
+        
         const prizmId = await getPRIZMCode(pCode)
+
+        cache.set(pCode, prizmId)
 
         return {
           ...element,
@@ -51,7 +61,6 @@ export const processPrizmFile = async (event: APIGatewayProxyEvent, s3Client: S3
         };
 
       } catch(error) {
-        console.log(error)
         return {
           ...element,
           prizmId: generateRandomNumber(1, 67)
