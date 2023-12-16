@@ -30,7 +30,7 @@ export const getPRIZMCode = async (postalCode: string) => {
       if (!data.success) {
         return generateRandomNumber(1, 67)
       }
-      return GetSegmentSchema.safeParse(response.data)
+      return data.data
     })
     .catch((error) => {
       console.log(error)
